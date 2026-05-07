@@ -172,7 +172,7 @@ def prepare_image(image, target_size):
 # ---------------------------------------------------------------------------
 
 
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
     """Accept an image upload and return disease prediction with details."""
     if model is None:
