@@ -6,8 +6,6 @@ env/
 # Dataset (too large for GitHub)
 New Plant Diseases Dataset(Augmented)/
 
-# Trained model (too large - upload to releases instead)
-plant_disease_classifier.h5
 
 # Node.js dependencies
 backend/node_modules/
