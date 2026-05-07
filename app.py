@@ -20,10 +20,20 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 app = Flask(__name__)
 
 
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = app.make_default_options_response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        return response
+
+
 @app.after_request
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     return response
 
