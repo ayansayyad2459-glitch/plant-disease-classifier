@@ -1,0 +1,21 @@
+{
+  "name": "agroscan-ai-backend",
+  "version": "1.0.0",
+  "description": "Express API gateway for AgroScan AI plant disease classifier",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["plant-disease", "ai", "express", "api"],
+  "author": "Ayan Sayyad",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "form-data": "^4.0.4",
+    "multer": "^2.0.2"
+  }
+}
