@@ -10,8 +10,7 @@ import json
 
 import numpy as np
 from flask import Flask, request, jsonify
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import img_to_array
+import tensorflow as tf
 from PIL import Image
 from urllib.parse import quote
 
@@ -140,17 +139,21 @@ for key in [k for k in disease_info if "healthy" in k]:
 # Model Loading
 # ---------------------------------------------------------------------------
 
-MODEL_PATH = "plant_disease_classifier.h5"
+MODEL_PATH = "model.tflite"
 
 try:
-    model = load_model(MODEL_PATH)
+    interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
     with open("class_indices.json", "r") as f:
         class_indices = json.load(f)
     class_labels = {v: k for k, v in class_indices.items()}
-    print("[INFO] Model and class indices loaded successfully.")
+    print("[INFO] TFLite Model and class indices loaded successfully.")
 except Exception as e:
     print(f"[ERROR] Could not load model or class indices: {e}")
-    model = None
+    interpreter = None
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -162,7 +165,7 @@ def prepare_image(image, target_size):
     if image.mode != "RGB":
         image = image.convert("RGB")
     image = image.resize(target_size)
-    image = img_to_array(image)
+    image = np.array(image, dtype=np.float32)
     image = np.expand_dims(image, axis=0) / 255.0
     return image
 
@@ -175,7 +178,7 @@ def prepare_image(image, target_size):
 @app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
     """Accept an image upload and return disease prediction with details."""
-    if model is None:
+    if interpreter is None:
         return jsonify({"error": "Model is not loaded."}), 500
 
     if "file" not in request.files:
@@ -189,8 +192,11 @@ def predict():
         image = Image.open(io.BytesIO(file.read()))
         processed_image = prepare_image(image, target_size=(224, 224))
 
-        predictions = model.predict(processed_image)
-        predicted_index = np.argmax(predictions[0])
+        interpreter.set_tensor(input_details[0]['index'], processed_image)
+        interpreter.invoke()
+        predictions = interpreter.get_tensor(output_details[0]['index'])
+
+        predicted_index = int(np.argmax(predictions[0]))
         confidence = float(predictions[0][predicted_index])
 
         predicted_class = class_labels.get(predicted_index, "Unknown")
